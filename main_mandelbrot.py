@@ -18,6 +18,14 @@ class CMandelbrot:
         self.pixels = self._calculate_mandelbrot_set()
 
     def _calculate_mandelbrot_pixel(self, px, py):
+        """
+        This method determines for a pixel if it's a member of the Mandelbrot set. If it's not a member, it
+        returns the number of iterations to escape. For members of the Mandelbrot set, the number of iterations equals
+        max_iter.
+        :param px: x-coordinate of pixel
+        :param py: y-coordinate of pixel
+        :return: b: membership boolean, niter: number of iterations to "escape"
+        """
         x = 0
         y = 0
         iter_counter = 0
@@ -110,17 +118,29 @@ class CRuns:
         self.nruns = len(self.coordinates_set)
 
     def plot_data(self, colormap='Blues', invert=False):
+
+        # for now, 4 subplots are sufficient
         f, ax = plot.subplots(2, 2)
+
+        # loop over the (4) runs
         for i in range(0, self.nruns):
+
+            # load mandelbrot set
             file_name_mb = 'run_{}.pickle'.format(i)
             mb = pickle.load(open(file_name_mb, 'rb'))
+
+            # invert colormap if necessary
             if invert is False:
                 c = mb.pixels.niter / mb.max_iter
             else:
-                c = (mb.max_iter - mb.pixels.niter) / mb.max_iter
+                c = 1 - mb.pixels.niter / mb.max_iter
+
+            # make scatter plots and set axes
             ax[i // 2, i % 2].scatter(x=mb.pixels.x, y=mb.pixels.y, c=c, cmap=colormap, marker='.')
             ax[i // 2, i % 2].set_xlim([self.coordinates_set.x_min.iloc[i], self.coordinates_set.x_max.iloc[i]])
             ax[i // 2, i % 2].set_ylim([self.coordinates_set.y_min.iloc[i], self.coordinates_set.y_max.iloc[i]])
+
+            # add rectangles: these are zoomed in and visualized in the next subplot
             if i + 1 < self.nruns:
                 x_min = self.coordinates_set.x_min.iloc[i + 1]
                 y_min = self.coordinates_set.y_min.iloc[i + 1]
@@ -128,6 +148,7 @@ class CRuns:
                 dy = self.coordinates_set.y_max.iloc[i + 1] - self.coordinates_set.y_min.iloc[i + 1]
                 ax[i // 2, i % 2].add_patch(patches.Rectangle((x_min, y_min), dx, dy, fill=False))
 
+        # maximize window and show plot
         fig_manager = plot.get_current_fig_manager()
         fig_manager.window.showMaximized()
         plot.show()
@@ -165,4 +186,4 @@ if __name__ == '__main__':
     else:
         file_name_runs = 'runs.pickle'
         runs = pickle.load(open(file_name_runs, 'rb'))
-        runs.plot_data(colormap='coolwarm', invert=False)
+        runs.plot_data(invert=True)
