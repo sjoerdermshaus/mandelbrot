@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plot
+import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import itertools
 import multiprocessing as mp
@@ -125,14 +125,10 @@ class CRuns:
         start_time = timeit.default_timer()
 
         # for now, 4 subplots are sufficient
-        fig, ax = plot.subplots(2, 2)
-        plot.subplots_adjust(wspace=0, hspace=0)
+        fig, ax = plt.subplots(2, 2)
 
-        resolution_height = 1800
-        resolution_width = 3200
-        screen_size = 15  # inch
-        inch_width = 32  # screen_size / np.sqrt(1 + (resolution_height / resolution_width) ** 2)
-        inch_height = 18  # (resolution_height / resolution_width) * inch_width
+        inch_width = 32
+        inch_height = 18
         fig.set_size_inches(inch_width, inch_height)
 
         # loop over the (4) runs
@@ -180,29 +176,29 @@ class CRuns:
         print(elapsed_time(timeit.default_timer() - start_time))
         print('Plotting finished')
 
-        print('Saving the plot')
+        print('Saving the plt')
         start_time = timeit.default_timer()
 
         now = dt.datetime.now()
         time_string = '{:4d}{:02d}{:02d}_{:02d}{:02d}'.format(now.year, now.month, now.day, now.hour, now.minute)
 
-        plot.savefig('{:s}_MandelbrotSet.png'.format(time_string), dpi=dpi)
-        plot.close(fig)
+        plt.savefig('{:s}_MandelbrotSet.png'.format(time_string), dpi=dpi)
+        plt.close(fig)
         print(elapsed_time(timeit.default_timer() - start_time))
-        print('Saving the plot finished')
+        print('Saving the plt finished')
 
         # x = mb.pixels.x.unique()
         # y = mb.pixels.y.unique()
         # X, Y = np.meshgrid(x, y)
         # Z = mb.pixels.niter.values.reshape(len(y), len(x))
-        # fig = plot.figure()
+        # fig = plt.figure()
         # ax = fig.gca(projection='3d')
         # ax.plot_trisurf(mb.pixels.x, mb.pixels.y, mb.pixels.niter, cmap='coolwarm_r', shade=False)
         #
         # # surf = ax.plot_surface(X, Y, Z, cmap='coolwarm', linewidth=0, antialiased=False)
         # # fig.colorbar(surf, shrink=0.5, aspect=5)
 
-        #plot.show()
+        #plt.show()
 
 
 def test_performance(scale=20, max_iter=1000):
@@ -228,9 +224,9 @@ def test_performance(scale=20, max_iter=1000):
 
         performance['time'].iloc[k - 1] = timeit.default_timer() - start_time
     print(performance)
-    plot.plot(performance.ncpus, performance.time, 'b-')
-    plot.xlabel('Number of CPUs')
-    plot.ylabel('time')
+    plt.plot(performance.ncpus, performance.time, 'b-')
+    plt.xlabel('Number of CPUs')
+    plt.ylabel('time')
 
 
 def main():
@@ -272,12 +268,13 @@ def elapsed_time(e):
 
 
 if __name__ == '__main__':
-    run_type = 'plot'
+    run_type = 'plt'
     if run_type == 'calc':
         main()
-    elif run_type == 'plot':
+    elif run_type == 'plt':
         file_name_runs = 'runs.pickle'
         runs = pickle.load(open(file_name_runs, 'rb'))
-        runs.plot_data(colormap='RdYlGn_r', add_rectangle=True, dpi=100)
+        for cm in plt.colormaps():
+            runs.plot_data(colormap=cm, add_rectangle=True)
     elif run_type == 'test':
         test_performance(10)
