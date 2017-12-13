@@ -7,7 +7,6 @@ import multiprocessing as mp
 import timeit
 import pickle
 import datetime as dt
-from mpl_toolkits.mplot3d import Axes3D
 
 
 class CMandelbrot:
@@ -183,7 +182,8 @@ class CRuns:
         time_string = '{:4d}{:02d}{:02d}_{:02d}{:02d}'.format(now.year, now.month, now.day, now.hour, now.minute)
 
         plt.savefig('{:s}_MandelbrotSet.png'.format(time_string), dpi=dpi)
-        plt.close(fig)
+        plt.show()
+        # plt.close(fig)
         print(elapsed_time(timeit.default_timer() - start_time))
         print('Saving the plt finished')
 
@@ -198,67 +198,79 @@ class CRuns:
         # # surf = ax.plot_surface(X, Y, Z, cmap='coolwarm', linewidth=0, antialiased=False)
         # # fig.colorbar(surf, shrink=0.5, aspect=5)
 
-        #plt.show()
+        # plt.show()
 
+    @staticmethod
+    def test_performance(scale=20, max_iter=1000):
 
-def test_performance(scale=20, max_iter=1000):
+        # test settings for mandelbrot set
+        data = np.array([[-2.00, 1.00, -1.00, 1.00],
+                         [-0.7470, -0.7445, 0.1110, 0.1135],
+                         [-0.7463 - 0.005, -0.7463 + 0.005, 0.1102 - 0.005, 0.1102 + 0.005],
+                         [-0.7459, -0.7456, 0.1098, 0.1102]])
+        main_runs = CRuns(data)
 
-    # test settings for mandelbrot set
-    data = np.array([[-2.00, 1.00, -1.00, 1.00],
-                     [-0.7470, -0.7445, 0.1110, 0.1135],
-                     [-0.7463 - 0.005, -0.7463 + 0.005, 0.1102 - 0.005, 0.1102 + 0.005],
-                     [-0.7459, -0.7456, 0.1098, 0.1102]])
-    main_runs = CRuns(data)
+        # record performance
+        ncpus = 8
+        performance = pd.DataFrame(columns=['ncpus', 'time'], data=np.zeros((ncpus, 2)))
+        for k in range(1, ncpus + 1):
+            print('ncpus: {:d}/{:d}'.format(k, ncpus))
+            performance['ncpus'].iloc[k - 1] = int(k)
+            start_time = timeit.default_timer()
+            for i in range(0, main_runs.nruns):
+                coordinates = main_runs.coordinates_set.iloc[i]
+                mb = CMandelbrot(coordinates, max_iter, scale=scale, nprocesses=k)
+                mb.run()
 
-    # record performance
-    ncpus = 8
-    performance = pd.DataFrame(columns=['ncpus', 'time'], data=np.zeros((ncpus, 2)))
-    for k in range(1, ncpus + 1):
-        print('ncpus: {:d}/{:d}'.format(k, ncpus))
-        performance['ncpus'].iloc[k - 1] = int(k)
+            performance['time'].iloc[k - 1] = timeit.default_timer() - start_time
+        print(performance)
+
+        plt.plot(performance.ncpus, performance.time, 'b-', performance.ncpus, performance.time, 'bo')
+        plt.xlabel('Number of CPUs')
+        plt.ylabel('time')
+        plt.grid()
+
+        now = dt.datetime.now()
+        time_string = '{:4d}{:02d}{:02d}_{:02d}{:02d}'.format(now.year, now.month, now.day, now.hour, now.minute)
+
+        inch_width = 32
+        inch_height = 18
+        plt.gcf().set_size_inches(inch_width, inch_height)
+
+        plt.savefig('{:s}_Performance.png'.format(time_string), dpi=100)
+        plt.show()
+
+    @staticmethod
+    def main():
+
         start_time = timeit.default_timer()
+
+        data = np.array([[-2.00000,  1.00000, -1.00000, 1.00000],
+                         [-0.70000, -0.42000,  0.52000, 0.70670],
+                         [-0.48000, -0.45000,  0.59000, 0.61000],
+                         [-0.46570, -0.46465,  0.59120, 0.59190]])
+
+        file_name = 'runs.pickle'
+        main_runs = CRuns(data, file_name)
+        pickle.dump(main_runs, open(file_name, 'wb'))
+
+        max_iter = [50, 100, 250, 1000]
+        # max_iter = [250, 500, 750, 1000]
+        scales = [5 * 5.0/3.0] * 4
+        # scales = [10] * 4
+
         for i in range(0, main_runs.nruns):
+            start_time_loop = timeit.default_timer()
             coordinates = main_runs.coordinates_set.iloc[i]
-            mb = CMandelbrot(coordinates, max_iter, scale=scale, nprocesses=k)
+            file_name = 'run_{}.pickle'.format(i)
+            mb = CMandelbrot(coordinates, max_iter[i], file_name=file_name, scale=scales[i], nprocesses=5)
             mb.run()
+            print(elapsed_time(timeit.default_timer() - start_time_loop))
 
-        performance['time'].iloc[k - 1] = timeit.default_timer() - start_time
-    print(performance)
-    plt.plot(performance.ncpus, performance.time, 'b-')
-    plt.xlabel('Number of CPUs')
-    plt.ylabel('time')
-
-
-def main():
-
-    start_time = timeit.default_timer()
-
-    data = np.array([[-2.00000,  1.00000, -1.00000, 1.00000],
-                     [-0.70000, -0.42000,  0.52000, 0.70670],
-                     [-0.48000, -0.45000,  0.59000, 0.61000],
-                     [-0.46570, -0.46465,  0.59120, 0.59190]])
-
-    file_name = 'runs.pickle'
-    main_runs = CRuns(data, file_name)
-    pickle.dump(main_runs, open(file_name, 'wb'))
-
-    max_iter = [50, 100, 250, 1000]
-    # max_iter = [250, 500, 750, 1000]
-    scales = [5.0/3.0] * 4
-    # scales = [10] * 4
-
-    for i in range(0, main_runs.nruns):
-        start_time_loop = timeit.default_timer()
-        coordinates = main_runs.coordinates_set.iloc[i]
-        file_name = 'run_{}.pickle'.format(i)
-        mb = CMandelbrot(coordinates, max_iter[i], file_name=file_name, scale=scales[i], nprocesses=5)
-        mb.run()
-        print(elapsed_time(timeit.default_timer() - start_time_loop))
-
-    print('--------')
-    print(elapsed_time(timeit.default_timer() - start_time))
-    print('--------')
-    main_runs.plot_data()
+        print('--------')
+        print(elapsed_time(timeit.default_timer() - start_time))
+        print('--------')
+        main_runs.plot_data()
 
 
 def elapsed_time(e):
@@ -268,13 +280,13 @@ def elapsed_time(e):
 
 
 if __name__ == '__main__':
-    run_type = 'plt'
+    run_type = 'calc'
     if run_type == 'calc':
-        main()
+        CRuns.main()
     elif run_type == 'plt':
         file_name_runs = 'runs.pickle'
         runs = pickle.load(open(file_name_runs, 'rb'))
         for cm in plt.colormaps():
             runs.plot_data(colormap=cm, add_rectangle=True)
     elif run_type == 'test':
-        test_performance(10)
+        CRuns.test_performance(20)
