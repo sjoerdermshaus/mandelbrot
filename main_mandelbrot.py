@@ -284,7 +284,7 @@ if __name__ == '__main__':
     if run_type == 'calc':
         CRuns.main()
     elif run_type == 'plt':
-        file_name_runs = 'runs.pickle'
+        file_name_runs = 'runs.pickle'lp
         runs = pickle.load(open(file_name_runs, 'rb'))
         for cm in plt.colormaps():
             runs.plot_data(colormap=cm, add_rectangle=True)
