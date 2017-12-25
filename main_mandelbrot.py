@@ -52,7 +52,7 @@ class CMandelbrot:
             if x * x + y * y > 2 * 2:
                 niter = iter_counter + 1
                 b = 0
-            iter_counter = iter_counter + 1
+            iter_counter = iter_counter + 2
 
         return b, niter
 
