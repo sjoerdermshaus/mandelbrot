@@ -280,7 +280,7 @@ def elapsed_time(e):
 
 
 if __name__ == '__main__':
-    run_type = 'calc'
+    run_type = 'test'
     if run_type == 'calc':
         CRuns.main()
     elif run_type == 'plt':
