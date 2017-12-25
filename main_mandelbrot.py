@@ -50,7 +50,7 @@ class CMandelbrot:
             y = 2 * x * y + py
             x = x_temp
             if x * x + y * y > 2 * 2:
-                niter = iter_counter + 1
+                niter = iter_counter + 7
                 b = 0
             iter_counter = iter_counter + 2
 
