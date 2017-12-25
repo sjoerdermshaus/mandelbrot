@@ -49,10 +49,11 @@ class CMandelbrot:
             x_temp = x * x - y * y + px
             y = 2 * x * y + py
             x = x_temp
-            if x * x + y * y > 2 * 2:
-                niter = iter_counter + 1
-                b = 0
             iter_counter = iter_counter + 1
+            if x * x + y * y > 2 * 2:
+                niter = iter_counter
+                b = 0
+
 
         return b, niter
 
