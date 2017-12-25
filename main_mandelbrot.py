@@ -182,8 +182,8 @@ class CRuns:
         time_string = '{:4d}{:02d}{:02d}_{:02d}{:02d}'.format(now.year, now.month, now.day, now.hour, now.minute)
 
         plt.savefig('{:s}_MandelbrotSet.png'.format(time_string), dpi=dpi)
-        plt.show()
-        # plt.close(fig)
+        # plt.show()
+        plt.close(fig)
         print(elapsed_time(timeit.default_timer() - start_time))
         print('Saving the plt finished')
 
@@ -238,7 +238,7 @@ class CRuns:
         plt.gcf().set_size_inches(inch_width, inch_height)
 
         plt.savefig('{:s}_Performance.png'.format(time_string), dpi=100)
-        plt.show()
+        # plt.show()
 
     @staticmethod
     def main():
@@ -280,7 +280,7 @@ def elapsed_time(e):
 
 
 if __name__ == '__main__':
-    run_type = 'plt'
+    run_type = 'calc'
     if run_type == 'calc':
         CRuns.main()
     elif run_type == 'plt':
