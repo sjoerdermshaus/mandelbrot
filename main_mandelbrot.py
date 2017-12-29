@@ -46,14 +46,13 @@ class CMandelbrot:
         niter = self.max_iter
         b = 1
         while (iter_counter < self.max_iter) and (b == 1):
+            iter_counter = iter_counter + 1
             x_temp = x * x - y * y + px
             y = 2 * x * y + py
             x = x_temp
-            iter_counter = iter_counter + 1
             if x * x + y * y > 2 * 2:
-                niter = iter_counter + 1
+                niter = iter_counter
                 b = 0
-            iter_counter = iter_counter + 2
 
         return b, niter
 
@@ -72,11 +71,11 @@ class CMandelbrot:
         c = px + 1j * py
         z = 0
         while (iter_counter < self.max_iter) and (b == 1):
+            iter_counter = iter_counter + 1
             z = z ** z + c ** 3
             if abs(z) > 2:
-                niter = iter_counter + 1
+                niter = iter_counter
                 b = 0
-            iter_counter = iter_counter + 1
 
         return b, niter
 
@@ -281,7 +280,7 @@ def elapsed_time(e):
 
 
 if __name__ == '__main__':
-    run_type = 'plt'
+    run_type = 'calc'
     if run_type == 'calc':
         CRuns.main()
     elif run_type == 'plt':
