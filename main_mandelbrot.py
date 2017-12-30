@@ -180,7 +180,7 @@ class CRuns:
         print(elapsed_time(timeit.default_timer() - start_time))
         print('Plotting finished')
 
-        print('Saving the plt')
+        print('Saving the plot')
         start_time = timeit.default_timer()
 
         now = dt.datetime.now()
@@ -190,7 +190,7 @@ class CRuns:
         # plt.show()
         plt.close(fig)
         print(elapsed_time(timeit.default_timer() - start_time))
-        print('Saving the plt finished')
+        print('Saving the plot finished')
 
         # x = mb.pixels.x.unique()
         # y = mb.pixels.y.unique()
