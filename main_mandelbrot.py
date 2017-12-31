@@ -184,7 +184,8 @@ class CRuns:
         start_time = timeit.default_timer()
 
         now = dt.datetime.now()
-        time_string = '{:4d}{:02d}{:02d}_{:02d}{:02d}_{:s}'.format(now.year, now.month, now.day, now.hour, now.minute, colormap)
+        time_string = '{:4d}{:02d}{:02d}_{:02d}{:02d}_{:s}'.format(now.year, now.month, now.day, now.hour, now.minute,
+                                                                   colormap)
 
         plt.savefig(os.path.join('output', 'images', '{:s}_MandelbrotSet.png'.format(time_string)), dpi=dpi)
         # plt.show()
