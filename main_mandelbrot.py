@@ -184,7 +184,7 @@ class CRuns:
         start_time = timeit.default_timer()
 
         now = dt.datetime.now()
-        time_string = '{:4d}{:02d}{:02d}_{:02d}{:02d}'.format(now.year, now.month, now.day, now.hour, now.minute)
+        time_string = '{:4d}{:02d}{:02d}_{:02d}{:02d}_{:s}'.format(now.year, now.month, now.day, now.hour, now.minute, colormap)
 
         plt.savefig(os.path.join('output', 'images', '{:s}_MandelbrotSet.png'.format(time_string)), dpi=dpi)
         # plt.show()
@@ -285,10 +285,10 @@ def elapsed_time(e):
 
 
 if __name__ == '__main__':
-    run_type = 'calc'
+    run_type = 'plot'
     if run_type == 'calc':
         main()
-    elif run_type == 'plt':
+    elif run_type == 'plot':
         file_name_runs = 'runs.pickle'
         f = open(os.path.join('input', file_name_runs), 'rb')
         runs = pickle.load(f)
