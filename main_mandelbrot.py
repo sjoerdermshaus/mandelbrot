@@ -122,7 +122,7 @@ class CRuns:
         self.coordinates_set = pd.DataFrame(columns=columns, data=data)
         self.nruns = len(self.coordinates_set)
 
-    def plot_data(self, colormap='RdYlGn', invert=False, add_rectangle=True, dpi=100):
+    def plot_data(self, colormap='Spectral_r', invert=False, add_rectangle=True, dpi=100, show_plot=False):
 
         print('Plotting')
         start_time = timeit.default_timer()
@@ -188,11 +188,13 @@ class CRuns:
                                                                    colormap)
 
         plt.savefig(os.path.join('output', 'images', '{:s}_MandelbrotSet.png'.format(time_string)), dpi=dpi)
-        # plt.show()
-        plt.close(fig)
         print(elapsed_time(timeit.default_timer() - start_time))
         print('Saving the plot finished')
-
+        if show_plot is True:
+            plt.show()
+        else:
+            plt.close(fig)
+        
         # x = mb.pixels.x.unique()
         # y = mb.pixels.y.unique()
         # X, Y = np.meshgrid(x, y)
@@ -203,9 +205,8 @@ class CRuns:
         #
         # # surf = ax.plot_surface(X, Y, Z, cmap='coolwarm', linewidth=0, antialiased=False)
         # # fig.colorbar(surf, shrink=0.5, aspect=5)
-
-        # plt.show()
-
+        
+	
     @staticmethod
     def test_performance(scale=20, max_iter=1000):
 
@@ -262,7 +263,7 @@ def main():
 
     max_iter = [50, 100, 250, 1000]
     # max_iter = [250, 500, 750, 1000]
-    scales = [5 * 5.0/3.0] * 4
+    scales = [1 * 5.0/3.0] * 4
     # scales = [10] * 4
 
     for i in range(0, main_runs.nruns):
