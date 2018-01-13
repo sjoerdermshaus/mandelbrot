@@ -184,8 +184,7 @@ class CRuns:
         start_time = timeit.default_timer()
 
         now = dt.datetime.now()
-        time_string = '{:4d}{:02d}{:02d}_{:02d}{:02d}_{:s}'.format(now.year, now.month, now.day, now.hour, now.minute,
-                                                                   colormap)
+        time_string = '{:4d}{:02d}{:02d}_{:02d}{:02d}_{:s}'.format(now.year, now.month, now.day, now.hour, now.minute, colormap)
 
         plt.savefig(os.path.join('output', 'images', '{:s}_MandelbrotSet.png'.format(time_string)), dpi=dpi)
         print(elapsed_time(timeit.default_timer() - start_time))
@@ -205,7 +204,8 @@ class CRuns:
         #
         # # surf = ax.plot_surface(X, Y, Z, cmap='coolwarm', linewidth=0, antialiased=False)
         # # fig.colorbar(surf, shrink=0.5, aspect=5)
-
+        
+	
     @staticmethod
     def test_performance(scale=20, max_iter=1000):
 
@@ -293,8 +293,7 @@ if __name__ == '__main__':
         file_name_runs = 'runs.pickle'
         f = open(os.path.join('input', file_name_runs), 'rb')
         runs = pickle.load(f)
-        # for cm in plt.colormaps():
-        #     runs.plot_data(colormap=cm, add_rectangle=True)
-        runs.plot_data(add_rectangle=True, show_plot=True)    
+        for cm in plt.colormaps():
+            runs.plot_data(colormap=cm, add_rectangle=True)
     elif run_type == 'test':
         CRuns.test_performance(20)
