@@ -14,7 +14,7 @@ import yaml
 
 
 def setup_logging():
-    file = r'C:\Users\Sjoerd\PycharmProjects\mandelbrot\logging.yaml'
+    file = 'logging.yaml'
     full_file = os.path.join(os.getcwd(), file)
     with open(full_file, 'r') as f:
         config = yaml.safe_load(f.read())
@@ -299,5 +299,5 @@ def main(run_type, scale=1, show_plot=False):
 
 
 if __name__ == '__main__':
-    main('calc', scale=10, show_plot=True)
+    main('calc', scale=5, show_plot=True)
     # main('single_plot', show_plot=True)

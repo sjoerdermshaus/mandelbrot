@@ -1,0 +1,26 @@
+version: 1
+disable_existing_loggers: False
+
+handlers:
+    file:
+        class: logging.FileHandler
+        level: NOTSET
+        formatter: simple
+        filename: ana.log
+        mode: w
+        
+    console:
+        class: logging.StreamHandler
+        level: NOTSET
+        formatter: simple
+        stream: ext://sys.stdout
+
+formatters:
+    simple:
+        class: logging.Formatter
+        format: '%(asctime)-20s %(filename)-20s %(funcName)-30s %(lineno)-4s %(levelname)-7s %(message)s'
+        datefmt: '%Y-%m-%d %H:%M:%S'
+
+root:
+    level: NOTSET
+    handlers: [file, console]
