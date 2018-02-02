@@ -39,7 +39,7 @@ class Mandelbrot:
             self.full_file_name = os.path.join('output', 'pickle', self.file_name)
 
     def run(self):
-        self.pixels = self._calculate_mandelbrot_set()
+        self.pixels = self.calculate_mandelbrot_set()
         if self.file_name is not None:
             self.save()
 
@@ -76,7 +76,7 @@ class Mandelbrot:
 
         return b, niter
 
-    def _calculate_mandelbrot_set(self):
+    def calculate_mandelbrot_set(self):
         x_min, x_max, y_min, y_max = self.coordinates
 
         x_step = (x_max - x_min) / 3200.0
