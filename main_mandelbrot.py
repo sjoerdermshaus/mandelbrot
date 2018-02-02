@@ -8,9 +8,25 @@ import timeit
 import pickle
 import datetime as dt
 import os
+import logging
+from logging.config import dictConfig
+import yaml
 
 
-class CMandelbrot:
+def setup_logging():
+    file = r'C:\Users\Sjoerd\PycharmProjects\mandelbrot\logging.yaml'
+    full_file = os.path.join(os.getcwd(), file)
+    with open(full_file, 'r') as f:
+        config = yaml.safe_load(f.read())
+        dictConfig(config)
+    logger = logging.getLogger(__name__)
+    return logger
+
+
+my_logger = setup_logging()
+
+
+class Mandelbrot:
 
     def __init__(self, coordinates, max_iter, file_name=None, scale=1.0, nprocesses=0):
         self.coordinates = coordinates
@@ -60,29 +76,6 @@ class CMandelbrot:
 
         return b, niter
 
-    def _calculate_mandelbrot_pixel2(self, px, py):
-        """
-        This method determines for a pixel if it's a member of the Mandelbrot set. If it's not a member, it
-        returns the number of iterations to escape. For members of the Mandelbrot set, the number of iterations equals
-        max_iter.
-        :param px: x-coordinate of pixel
-        :param py: y-coordinate of pixel
-        :return: b: membership boolean, niter: number of iterations to "escape"
-        """
-        iter_counter = 0
-        niter = self.max_iter
-        b = 1
-        c = px + 1j * py
-        z = 0
-        while (iter_counter < self.max_iter) and (b == 1):
-            iter_counter = iter_counter + 1
-            z = z ** z + c ** 3
-            if abs(z) > 2:
-                niter = iter_counter
-                b = 0
-
-        return b, niter
-
     def _calculate_mandelbrot_set(self):
         x_min, x_max, y_min, y_max = self.coordinates
 
@@ -93,7 +86,7 @@ class CMandelbrot:
 
         pixels_temp = np.matrix(list(itertools.product(x_axis, y_axis)))
         npixels = len(pixels_temp)
-        print('{:d} x {:d} = {:d} pixels'.format(len(x_axis), len(y_axis), npixels))
+        my_logger.info('{:d} x {:d} = {:d} pixels'.format(len(x_axis), len(y_axis), npixels))
         index = range(0, npixels)
         columns = ['x', 'y', 'niter']
         data = np.hstack((pixels_temp, np.zeros((npixels, 1))))
@@ -113,7 +106,7 @@ class CMandelbrot:
         return pixels
 
 
-class CRuns:
+class MandelbrotRuns:
 
     def __init__(self, data, file_name=None):
         self.data = data
@@ -122,9 +115,10 @@ class CRuns:
         self.coordinates_set = pd.DataFrame(columns=columns, data=data)
         self.nruns = len(self.coordinates_set)
 
-    def plot_data(self, colormap='Spectral_r', invert=False, add_rectangle=True, dpi=100, show_plot=False):
+    def plot_data(self, colormap='Spectral_r', invert=False, add_rectangle=True, dpi=100,
+                  show_plot=False, experimental=0):
 
-        print('Plotting')
+        my_logger.info('Plotting data')
         start_time = timeit.default_timer()
 
         # for now, 4 subplots are sufficient
@@ -134,12 +128,13 @@ class CRuns:
         inch_height = 18
         fig.set_size_inches(inch_width, inch_height)
 
+        mb = pd.DataFrame()
         # loop over the (4) runs
         for i in range(0, self.nruns):
 
             # load mandelbrot set
             file_name_mb = 'run_{}.pickle'.format(i)
-            mb = CMandelbrot.load(file_name_mb)
+            mb = Mandelbrot.load(file_name_mb)
             file_name_csv = os.path.join('output', 'csv', 'run_{}.csv'.format(i))
             mb.pixels.to_csv(open(file_name_csv, 'w'), index=False)
 
@@ -177,77 +172,81 @@ class CRuns:
                 file_name_df = 'run_rectangle{}.csv'.format(i)
                 df.to_csv(open(os.path.join('output', 'csv', file_name_df), 'w'), index=False)
 
-        print(elapsed_time(timeit.default_timer() - start_time))
-        print('Plotting finished')
+        my_logger.info('Elapsed time: {:s}'.format(elapsed_time(timeit.default_timer() - start_time)))
+        my_logger.info('Plotting finished')
 
-        print('Saving the plot')
+        my_logger.info('Saving the plot')
         start_time = timeit.default_timer()
 
         now = dt.datetime.now()
-        time_string = '{:4d}{:02d}{:02d}_{:02d}{:02d}_{:s}'.format(now.year, now.month, now.day, now.hour, now.minute, colormap)
+        time_string = '{:4d}{:02d}{:02d}_{:02d}{:02d}_{:s}'.format(now.year,
+                                                                   now.month,
+                                                                   now.day,
+                                                                   now.hour,
+                                                                   now.minute,
+                                                                   colormap)
 
         plt.savefig(os.path.join('output', 'images', '{:s}_MandelbrotSet.png'.format(time_string)), dpi=dpi)
-        print(elapsed_time(timeit.default_timer() - start_time))
-        print('Saving the plot finished')
+        my_logger.info('Elapsed time: {:s}'.format(elapsed_time(timeit.default_timer() - start_time)))
+        my_logger.info('Saving the plot finished')
         if show_plot is True:
             plt.show()
         else:
             plt.close(fig)
-        
-        # x = mb.pixels.x.unique()
-        # y = mb.pixels.y.unique()
-        # X, Y = np.meshgrid(x, y)
-        # Z = mb.pixels.niter.values.reshape(len(y), len(x))
-        # fig = plt.figure()
-        # ax = fig.gca(projection='3d')
-        # ax.plot_trisurf(mb.pixels.x, mb.pixels.y, mb.pixels.niter, cmap='coolwarm_r', shade=False)
-        #
-        # # surf = ax.plot_surface(X, Y, Z, cmap='coolwarm', linewidth=0, antialiased=False)
-        # # fig.colorbar(surf, shrink=0.5, aspect=5)
-        
-	
-    @staticmethod
-    def test_performance(scale=20, max_iter=1000):
 
-        # test settings for mandelbrot set
-        data = np.array([[-2.00, 1.00, -1.00, 1.00],
-                         [-0.7470, -0.7445, 0.1110, 0.1135],
-                         [-0.7463 - 0.005, -0.7463 + 0.005, 0.1102 - 0.005, 0.1102 + 0.005],
-                         [-0.7459, -0.7456, 0.1098, 0.1102]])
-        main_runs = CRuns(data)
-
-        # record performance
-        ncpus = 8
-        performance = pd.DataFrame(columns=['ncpus', 'time'], data=np.zeros((ncpus, 2)))
-        for k in range(1, ncpus + 1):
-            print('ncpus: {:d}/{:d}'.format(k, ncpus))
-            performance['ncpus'].iloc[k - 1] = int(k)
-            start_time = timeit.default_timer()
-            for i in range(0, main_runs.nruns):
-                coordinates = main_runs.coordinates_set.iloc[i]
-                mb = CMandelbrot(coordinates, max_iter, scale=scale, nprocesses=k)
-                mb.run()
-
-            performance['time'].iloc[k - 1] = timeit.default_timer() - start_time
-        print(performance)
-
-        plt.plot(performance.ncpus, performance.time, 'b-', performance.ncpus, performance.time, 'bo')
-        plt.xlabel('Number of CPUs')
-        plt.ylabel('time')
-        plt.grid()
-
-        now = dt.datetime.now()
-        time_string = '{:4d}{:02d}{:02d}_{:02d}{:02d}'.format(now.year, now.month, now.day, now.hour, now.minute)
-
-        inch_width = 32
-        inch_height = 18
-        plt.gcf().set_size_inches(inch_width, inch_height)
-
-        plt.savefig(os.path.join('output', 'images', '{:s}_Performance.png'.format(time_string)), dpi=100)
-        # plt.show()
+        if experimental:
+            x = mb.pixels.x.unique()
+            y = mb.pixels.y.unique()
+            X, Y = np.meshgrid(x, y)
+            Z = mb.pixels.niter.values.reshape(len(y), len(x))
+            fig = plt.figure()
+            ax = fig.gca(projection='3d')
+            ax.plot_trisurf(mb.pixels.x, mb.pixels.y, mb.pixels.niter, cmap='coolwarm_r', shade=False)
+            surf = ax.plot_surface(X, Y, Z, cmap='coolwarm', linewidth=0, antialiased=False)
+            fig.colorbar(surf, shrink=0.5, aspect=5)
 
 
-def main():
+def performance(scale=20, max_iter=1000):
+
+    # test settings for mandelbrot set
+    data = np.array([[-2.00, 1.00, -1.00, 1.00],
+                     [-0.7470, -0.7445, 0.1110, 0.1135],
+                     [-0.7463 - 0.005, -0.7463 + 0.005, 0.1102 - 0.005, 0.1102 + 0.005],
+                     [-0.7459, -0.7456, 0.1098, 0.1102]])
+    main_runs = MandelbrotRuns(data)
+
+    # record performance
+    ncpus = 8
+    df_performance = pd.DataFrame(columns=['ncpus', 'time'], data=np.zeros((ncpus, 2)))
+    for k in range(1, ncpus + 1):
+        my_logger.info('ncpus: {:d}/{:d}'.format(k, ncpus))
+        df_performance['ncpus'].iloc[k - 1] = int(k)
+        start_time = timeit.default_timer()
+        for i in range(0, main_runs.nruns):
+            coordinates = main_runs.coordinates_set.iloc[i]
+            mb = Mandelbrot(coordinates, max_iter, scale=scale, nprocesses=k)
+            mb.run()
+
+            df_performance['time'].iloc[k - 1] = timeit.default_timer() - start_time
+    my_logger.info(df_performance)
+
+    plt.plot(df_performance.ncpus, df_performance.time, 'b-', df_performance.ncpus, df_performance.time, 'bo')
+    plt.xlabel('Number of CPUs')
+    plt.ylabel('time')
+    plt.grid()
+
+    now = dt.datetime.now()
+    time_string = '{:4d}{:02d}{:02d}_{:02d}{:02d}'.format(now.year, now.month, now.day, now.hour, now.minute)
+
+    inch_width = 32
+    inch_height = 18
+    plt.gcf().set_size_inches(inch_width, inch_height)
+
+    plt.savefig(os.path.join('output', 'images', '{:s}_Performance.png'.format(time_string)), dpi=100)
+    plt.show()
+
+
+def calc(scale=1, show_plot=False):
 
     start_time = timeit.default_timer()
 
@@ -257,26 +256,22 @@ def main():
                      [-0.46570, -0.46465,  0.59120, 0.59190]])
 
     file_name = 'runs.pickle'
-    main_runs = CRuns(data, file_name)
+    main_runs = MandelbrotRuns(data, file_name)
     pickle.dump(main_runs, open(os.path.join('input', file_name), 'wb'))
 
     max_iter = [50, 100, 250, 1000]
-    # max_iter = [250, 500, 750, 1000]
-    scales = [1 * 5.0/3.0] * 4
-    # scales = [10] * 4
+    scales = [scale * 5.0/3.0] * 4
 
     for i in range(0, main_runs.nruns):
         start_time_loop = timeit.default_timer()
         coordinates = main_runs.coordinates_set.iloc[i]
         file_name = 'run_{}.pickle'.format(i)
-        mb = CMandelbrot(coordinates, max_iter[i], file_name=file_name, scale=scales[i], nprocesses=5)
+        mb = Mandelbrot(coordinates, max_iter[i], file_name=file_name, scale=scales[i], nprocesses=5)
         mb.run()
-        print(elapsed_time(timeit.default_timer() - start_time_loop))
+        my_logger.info('Elapsed time: {:s}'.format(elapsed_time(timeit.default_timer() - start_time_loop)))
 
-    print('--------')
-    print(elapsed_time(timeit.default_timer() - start_time))
-    print('--------')
-    main_runs.plot_data()
+    my_logger.info('Elapsed time: {:s}'.format(elapsed_time(timeit.default_timer() - start_time)))
+    main_runs.plot_data(show_plot=show_plot)
 
 
 def elapsed_time(e):
@@ -285,15 +280,24 @@ def elapsed_time(e):
     return "{:02d}:{:02d}:{:02d}".format(int(h), int(m), int(s))
 
 
-if __name__ == '__main__':
-    run_type = 'plot'
+def main(run_type, scale=1, show_plot=False):
     if run_type == 'calc':
-        main()
-    elif run_type == 'plot':
+        calc(scale, show_plot)
+    elif run_type == 'single_plot':
+        file_name_runs = 'runs.pickle'
+        f = open(os.path.join('input', file_name_runs), 'rb')
+        runs = pickle.load(f)
+        runs.plot_data(add_rectangle=True, show_plot=True)
+    elif run_type == 'multiple_plot':
         file_name_runs = 'runs.pickle'
         f = open(os.path.join('input', file_name_runs), 'rb')
         runs = pickle.load(f)
         for cm in plt.colormaps():
             runs.plot_data(colormap=cm, add_rectangle=True)
     elif run_type == 'test':
-        CRuns.test_performance(20)
+        performance(20)
+
+
+if __name__ == '__main__':
+    main('calc', scale=10, show_plot=True)
+    # main('single_plot', show_plot=True)
