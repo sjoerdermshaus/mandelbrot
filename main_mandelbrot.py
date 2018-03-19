@@ -299,5 +299,5 @@ def main(run_type, scale=1, show_plot=False):
 
 
 if __name__ == '__main__':
-    main('calc', scale=5, show_plot=True)
-    # main('single_plot', show_plot=True)
+    main(run_type='calc', scale=5, show_plot=True)
+    #main('single_plot')
