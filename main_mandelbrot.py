@@ -44,7 +44,11 @@ class Mandelbrot:
             self.save()
 
     def save(self):
-        pickle.dump(self, open(self.full_file_name, 'wb'))
+        full_folder = os.path.join(os.getcwd(), 'output', 'pickle')
+        if not os.path.exists(full_folder):
+            os.makedirs(full_folder)
+        full_file = os.path.join(full_folder, self.file_name)
+        pickle.dump(self, open(full_file, 'wb'))
 
     @staticmethod
     def load(file_name):
@@ -97,8 +101,8 @@ class Mandelbrot:
             pool = mp.Pool()
         else:
             pool = mp.Pool(self.nprocesses)
-        iterable = ((pixels.x[pixel_i], pixels.y[pixel_i]) for pixel_i in range(0, npixels))
-        results = pool.starmap_async(self._calculate_mandelbrot_pixel, chunksize=1000, iterable=iterable).get()
+        iterable = [(pixels.x[pixel_i], pixels.y[pixel_i]) for pixel_i in range(0, npixels)]
+        results = pool.starmap(self._calculate_mandelbrot_pixel, chunksize=10000, iterable=iterable)
         pool.close()
         pixels.sort_index(inplace=True)
         pixels.niter = [result[1] for result in results]
@@ -186,7 +190,11 @@ class MandelbrotRuns:
                                                                    now.minute,
                                                                    colormap)
 
-        plt.savefig(os.path.join('output', 'images', '{:s}_MandelbrotSet.png'.format(time_string)), dpi=dpi)
+        full_folder = os.path.join(os.getcwd(), 'output', 'images')
+        if not os.path.exists(full_folder):
+            os.makedirs(full_folder)
+        full_file = os.path.join(full_folder, '{:s}_MandelbrotSet.png'.format(time_string))
+        plt.savefig(full_file, dpi=dpi)
         my_logger.info('Elapsed time: {:s}'.format(elapsed_time(timeit.default_timer() - start_time)))
         my_logger.info('Saving the plot finished')
         if show_plot is True:
@@ -257,7 +265,10 @@ def calc(scale=1, show_plot=False):
 
     file_name = 'runs.pickle'
     main_runs = MandelbrotRuns(data, file_name)
-    pickle.dump(main_runs, open(os.path.join('input', file_name), 'wb'))
+    full_folder = os.path.join(os.getcwd(), 'runs')
+    if not os.path.exists(full_folder):
+        os.makedirs(full_folder)
+    pickle.dump(main_runs, open(os.path.join(full_folder, file_name), 'wb'))
 
     max_iter = [50, 100, 250, 1000]
     scales = [scale * 5.0/3.0] * 4
@@ -299,5 +310,5 @@ def main(run_type, scale=1, show_plot=False):
 
 
 if __name__ == '__main__':
-    main(run_type='calc', scale=5, show_plot=True)
-    #main('single_plot')
+    main(run_type='calc', scale=2, show_plot=False)
+    # main('single_plot')
