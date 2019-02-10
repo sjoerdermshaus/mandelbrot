@@ -102,7 +102,7 @@ class Mandelbrot:
         else:
             pool = mp.Pool(self.nprocesses)
         iterable = [(pixels.x[pixel_i], pixels.y[pixel_i]) for pixel_i in range(0, npixels)]
-        results = pool.starmap(self._calculate_mandelbrot_pixel, chunksize=10000, iterable=iterable)
+        results = pool.starmap(self._calculate_mandelbrot_pixel, chunksize=1000, iterable=iterable)
         pool.close()
         pixels.sort_index(inplace=True)
         pixels.niter = [result[1] for result in results]
@@ -224,7 +224,7 @@ def performance(scale=20, max_iter=1000):
     main_runs = MandelbrotRuns(data)
 
     # record performance
-    ncpus = 8
+    ncpus = 12
     df_performance = pd.DataFrame(columns=['ncpus', 'time'], data=np.zeros((ncpus, 2)))
     for k in range(1, ncpus + 1):
         my_logger.info('ncpus: {:d}/{:d}'.format(k, ncpus))
@@ -306,9 +306,9 @@ def main(run_type, scale=1, show_plot=False):
         for cm in plt.colormaps():
             runs.plot_data(colormap=cm, add_rectangle=True)
     elif run_type == 'test':
-        performance(20)
+        performance(scale=10)
 
 
 if __name__ == '__main__':
-    main(run_type='calc', scale=2, show_plot=False)
-    # main('single_plot')
+    # main(run_type='calc', scale=2, show_plot=False)
+    main('test')
